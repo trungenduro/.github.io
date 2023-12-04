@@ -66,9 +66,10 @@ for i in range(len(elements)):
 	e1 = elements[i].find_element(By.CLASS_NAME, "mbody")	
 	print(e1.text)
 	if i%2==0:
-		if "↓" in e1.text or "↑" in e1.text: 				
+		if not("-" in e1.text):
 			prices.append(float( e1.text.replace(",","").split(' ')[0]))
-		
+		else: 	
+			prices.append(0)
 
 print(prices)
 
