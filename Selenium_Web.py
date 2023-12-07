@@ -4,12 +4,14 @@ from selenium.webdriver.common.keys import Keys
 import time
 import threading
 import tkinter as tk
+import datetime
 from tkinter import ttk
 
 def GetPrices():
 	global driver
 	global codes
 	global user_name
+	global hrefElements
 	elements = driver.find_elements(By.CLASS_NAME, "cell-05")
 	prices=[]
 	for i in range(len(elements)):
@@ -39,6 +41,7 @@ def GetPrices():
 		if len(e1)>0:
 			e2 = e1[0].find_elements(By.XPATH, '*')
 			names.append(e1[0].text  )
+
 			hrefElements.append( e1[0])
 	result=[]
 	result.append(names)		
@@ -58,30 +61,35 @@ def AddNewPrice(olds,news):
 	global Label1_str
 	global Label2_str
 	for x in range(len(news[2])):
-		print(test[1][x],user_name.get())	
-		if 	test[1][x]==user_name.get():
-			Label1_str.set(test[0][x])
-			Label2_str.set(test[2][x])
+		#print(test[1][x],user_name.get())	
+
 		if olds[x][-1] != test[2][x]:
 			#print(f"{names[x]}: {olds[x][-1]} => {test[2][x]}")
-			olds[x].append(test[2][x])
+			
 			if olds[x][-1] < test[2][x]:
 				AllChecks[x].append('+')
 			else:
 				AllChecks[x].append('-')
-			
+			if 	test[1][x]==user_name.get():
+				Label1_str.set(f"{test[2][x]} ({max(olds[x])}-{min(olds[x])})")
+				Label2_str.set(''.join(AllChecks[x][-10:-1]))
+				print(f"{names[x]} : {olds[x][-1]} -> {test[2][x]}  {test[2][x]-olds[x][-1]}  ")
+			olds[x].append(test[2][x])	
+			maxP = max(olds[x])
+			minP = min(olds[x])
+
 			if 	codes[x]==user_name.get():
 				print(f"		{names[x]}  Giam 3   {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])}")
 			if "--" in ''.join(AllChecks[x][-2:-1]):
-				print(f"{names[x]}  Giam 3   {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])}")
+				print(f"{names[x]}  Giam 3   {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
 				
 			if "++" in ''.join(AllChecks[x][-2:-1]):
-				print(f"{names[x]}  Tang 3  {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])}")
+				print(f"{names[x]}  Tang 3  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
 							
 			if "-----" in ''.join(AllChecks[x][-5:-1]):
-				print(f"{names[x]}  Ban gap  {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])} ")				
+				print(f"{names[x]}  Ban gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")				
 			if "+++++" in ''.join(AllChecks[x][-5:-1]):
-				print(f"{names[x]}  Mua gap  {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])} ")				
+				print(f"{names[x]}  Mua gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")				
 
 	return olds		
 
@@ -94,10 +102,16 @@ def start():
 	global codes
 	global user_name
 	global Label1_str
+	global Label2_str
+	global Label3_str
+	global listbox
 	print("start google")
+	dt_now = datetime.datetime.now()
+	now=dt_now.strftime('%Y年%m月%d日 %H:%M:%S')
+	print(f"===start google==={now}======")
 	#driver.set_window_position(-10000,0)
 	driver.get('https://www.rakuten-sec.co.jp/')
-
+	#driver.title
 
 	time.sleep(0.1)
 
@@ -130,6 +144,8 @@ def start():
 	time.sleep(0.1)
 
 	test = GetPrices()
+#	listbox = set(test[0])
+	listbox['values'] = test[0]
 	AllPrices=[]
 	AllChecks=[]
 	names=test[0]
@@ -139,19 +155,51 @@ def start():
 		AllChecks.append([''])
 	i=0
 	print(test[1])
-	while i<100:		  
+	while i<30000:		  
 	  driver.refresh()
-	  time.sleep(1)
+	  time.sleep(0.1)
+
+
 	  test = GetPrices()
+	  if Label3_str.get()=="M":
+	  	print(f"Mua {user_name.get()} ")
+	  	Label3_str.set("OK")
+	  	x=listbox.current()
+	  	print(test[3][x])
+	  	test[3][x].click()
+	  	print(driver.title)
+	  	driver.back()
+	  	time.sleep(0.01)
+	  	print(driver.title)
 	  AllPrices=AddNewPrice(AllPrices,test)
 	  i=i+1
-	  print(f"======{i}======")
+	  dt_now = datetime.datetime.now()
+	  now=dt_now.strftime('%Y年%m月%d日 %H:%M:%S')
+	  print(f"======{now}======")
 	#print(AllPrices)
 	#print(AllChecks)
 	print(f"========")
 
+def select_combo(event):
+	global listbox
+	global user_name
+	global Label1_str
+	global Label2_str
+	global Label3_str
+	global AllChecks
+	if len(test)>0:
+		x=listbox.current()
+		user_name.set(test[1][listbox.current()])
+		Label1_str.set(test[2][listbox.current()])
+		
+	if len(AllChecks) > 0:
+		Label2_str.set(''.join(AllChecks[listbox.current()][-20:-1]))
+	if len(AllPrices)>0:
+		Label1_str.set(f"{test[2][x]} ({max(AllPrices[x])}-{min(AllPrices[x])})")
+
 def startForm():
 	global root
+	global listbox
 	root = tk.Tk()
 	root.title("Greeter")
 	global user_name 
@@ -159,28 +207,42 @@ def startForm():
 	global Label1_str 
 	Label1_str= tk.StringVar()
 	global Label2_str 
+	global Label3_str 
 	Label2_str= tk.StringVar()
+	Label3_str= tk.StringVar()
+
 	Label1_str.set("label1")
 	Label2_str.set("label2")
+	Label3_str.set("label3")
+
 	main = ttk.Frame(root, padding=(20, 10, 20, 0))
 	main.grid()
 
 	root.columnconfigure(0, weight=1)
 	root.rowconfigure(1, weight=1)
-	name_label = ttk.Label(main, text="Name:")
-	name_label.grid(row=0, column=0, padx=(0, 10))
+	
 	name_entry = ttk.Entry(main, width=15, textvariable=user_name)
 	name_entry.grid(row=0, column=1)
 	name_entry.focus()
 
+	listbox = ttk.Combobox(main)
+	listbox.grid(row=0, column=0, padx=(0, 10))
+	listbox.bind('<<ComboboxSelected>>', select_combo)	
 	Label1 = ttk.Label(main, textvariable=Label1_str)
 	Label1.grid(row=1, column=0, columnspan=1, sticky="W", pady=(10, 0))
+
+
+
 
 	Label2 = ttk.Label(main, textvariable=Label2_str)
 	Label2.grid(row=1, column=1, columnspan=1, sticky="W", pady=(10, 0))
 
+	Label3 = ttk.Label(main, textvariable=Label3_str)
+	Label3.grid(row=2, column=0, columnspan=1, sticky="W", pady=(10, 0))
+
+
 	buttons = ttk.Frame(main, padding=(0, 10))
-	buttons.grid(row=2, column=0, columnspan=2, sticky="EW")
+	buttons.grid(row=3, column=0, columnspan=2, sticky="EW")
 
 	# buttons.columnconfigure(0, weight=1)
 	# buttons.columnconfigure(1, weight=1)
@@ -189,7 +251,7 @@ def startForm():
 	start_button = ttk.Button(buttons, text="Start", command=greet)
 	start_button.grid(row=0, column=0, sticky="EW")
 
-	ban_button = ttk.Button(buttons, text="Mua", command=greet)
+	ban_button = ttk.Button(buttons, text="Mua", command=Mua)
 	ban_button.grid(row=0, column=1, sticky="EW")
 
 	quit_button = ttk.Button(buttons, text="Quit", command=root.destroy)
@@ -199,6 +261,18 @@ def startForm():
 	root.bind("KP_Enter", greet)
 
 	root.mainloop()
+
+def Mua():
+	global listbox
+	global user_name
+	global Label1_str
+	global Label2_str
+	global Label3_str
+	global AllChecks
+	global hrefElements
+	global driver
+	Label3_str.set("M")
+
 def greet(*args):
     #greeting_message.set(f"Hello, {name or 'World'}!")
     thread1 = threading.Thread(target=start)
@@ -206,6 +280,7 @@ def greet(*args):
 
 AllPrices=[]
 AllChecks=[]
+hrefElements=[]
 test=[]
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
