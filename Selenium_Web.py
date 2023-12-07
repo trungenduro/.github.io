@@ -104,6 +104,7 @@ def start():
 	global Label1_str
 	global Label2_str
 	global Label3_str
+	global qtyStr
 	global listbox
 	print("start google")
 	dt_now = datetime.datetime.now()
@@ -131,17 +132,17 @@ def start():
 	element = driver.find_element(By.CLASS_NAME, "pcm-gl-nav-01__button-inner")
 	href = element.get_attribute('href')
 	element.click()
-	time.sleep(0.1)
+	#time.sleep(0.1)
 
 	#//pcm-gl-nav-02__button
 	element = driver.find_element(By.CLASS_NAME, "pcm-gl-nav-02__button")
 
 	elements = driver.find_elements(By.CLASS_NAME, "pcm-gl-nav-02__button")
 
-	href = element.get_attribute('href')
+	href = elements[1].get_attribute('href')
 
 	elements[1].click()
-	time.sleep(0.1)
+	#time.sleep(0.1)
 
 	test = GetPrices()
 #	listbox = set(test[0])
@@ -154,23 +155,80 @@ def start():
 		AllPrices.append(temp)
 		AllChecks.append([''])
 	i=0
-	print(test[1])
+	#print(test[1])
 	while i<30000:		  
 	  driver.refresh()
-	  time.sleep(0.1)
+	  #time.sleep(0.1)
 
 
 	  test = GetPrices()
-	  if Label3_str.get()=="M":
+	  if Label3_str.get()=="buy" or Label3_str.get()=="sell":
 	  	print(f"Mua {user_name.get()} ")
-	  	Label3_str.set("OK")
+	  	
 	  	x=listbox.current()
 	  	print(test[3][x])
 	  	test[3][x].click()
 	  	print(driver.title)
-	  	driver.back()
-	  	time.sleep(0.01)
+
+	  	MuaRefs = driver.find_elements(By.CLASS_NAME, "pcmm_jpstk--is-mb-8")
+	  	print(f"found {len(MuaRefs)}  mua buttons  ")
+	  	if len(MuaRefs)>0:
+	  		#e1 = MuaRefs[0].find_element(By.CLASS_NAME, "pcmm_jpstk-btlk-buy pcmm_jpstk-btlk-filled pcmm_jpstk-btlk--xs pcmm_jpstk-btlk--block")
+	  		print(f"Mua {MuaRefs[0].get_attribute('innerHTML')}===href= {MuaRefs[0].get_attribute('href')}")
+	  		btn1=MuaRefs[2].find_elements(By.XPATH, "*")
+	  		driver.get(btn1[0].get_attribute('href'))
+	  		print(driver.title)
+	  		#muaRadios = driver.find_elements(By.ID, "buy")
+	  		#muaRadios[0].click()
+
+	  		banRadios = driver.find_elements(By.ID, Label3_str.get())
+	  		banRadios[0].click()
+
+
+	  		time.sleep(0.1)
+	  		kikans=driver.find_elements(By.ID, "mgnMaturityCd_system_6m")
+	  		kikans[0].click()
+	  		qtys=driver.find_elements(By.NAME, "orderValue")
+	  		qtys[0].send_keys(qtyStr.get())
+
+	  		prices=driver.find_elements(By.NAME, "marketOrderPrice")
+	  		#prices[0].send_keys("1000")
+
+	  		#id=priceMarket name =marketOrderKbn id= marketOrderKbn
+	  		#<input type="radio" name="marketOrderKbn" value="1" onclick="calcValueAmuont();" id="priceMarket">
+	  		prices=driver.find_elements(By.ID, "priceMarket")
+	  		prices[0].click()
+
+
+
+	  		password=driver.find_elements(By.NAME, "password")
+	  		password[0].send_keys("2701")
+
+
+	  		#password  accountCd
+	  		normals=driver.find_elements(By.ID, "general")
+	  		normals[0].click()
+	  		#ormit_checkbox
+
+	  		normals=driver.find_elements(By.ID, "ormit_checkbox")
+	  		normals[0].click()
+	  		
+	  		submit=driver.find_elements(By.ID, "ormit_sbm")
+	  		submit[0].click()
+
+	  		#id=ormit_sbm
+	  		#orderValue	
+
+	  		#mgnMaturityCd_system_6m
+
+	  	#for k in range(len(MuaRefs)):
+	  	#	print(f" {k} html {MuaRefs[k].get_attribute('innerHTML')}    ")
+	  	#driver.back()
+	  	time.sleep(1)
+	  	Label3_str.set("OK")
 	  	print(driver.title)
+	  	driver.get(href)
+	  	#driver.back()
 	  AllPrices=AddNewPrice(AllPrices,test)
 	  i=i+1
 	  dt_now = datetime.datetime.now()
@@ -200,10 +258,13 @@ def select_combo(event):
 def startForm():
 	global root
 	global listbox
+	global qtyStr
 	root = tk.Tk()
 	root.title("Greeter")
 	global user_name 
 	user_name= tk.StringVar()
+	qtyStr=tk.StringVar()
+	qtyStr.set("100")
 	global Label1_str 
 	Label1_str= tk.StringVar()
 	global Label2_str 
@@ -239,7 +300,8 @@ def startForm():
 
 	Label3 = ttk.Label(main, textvariable=Label3_str)
 	Label3.grid(row=2, column=0, columnspan=1, sticky="W", pady=(10, 0))
-
+	qty_entry = ttk.Entry(main, width=10, textvariable=qtyStr)
+	qty_entry.grid(row=2, column=1)
 
 	buttons = ttk.Frame(main, padding=(0, 10))
 	buttons.grid(row=3, column=0, columnspan=2, sticky="EW")
@@ -248,10 +310,10 @@ def startForm():
 	# buttons.columnconfigure(1, weight=1)
 
 	buttons.columnconfigure((0, 1), weight=1)
-	start_button = ttk.Button(buttons, text="Start", command=greet)
+	start_button = ttk.Button(buttons, text="Mua", command=Mua)
 	start_button.grid(row=0, column=0, sticky="EW")
 
-	ban_button = ttk.Button(buttons, text="Mua", command=Mua)
+	ban_button = ttk.Button(buttons, text="Ban", command=Ban)
 	ban_button.grid(row=0, column=1, sticky="EW")
 
 	quit_button = ttk.Button(buttons, text="Quit", command=root.destroy)
@@ -259,19 +321,17 @@ def startForm():
 
 	root.bind("<Return>", greet)
 	root.bind("KP_Enter", greet)
+	thread1 = threading.Thread(target=start)
+	thread1.start()
 
 	root.mainloop()
 
 def Mua():
-	global listbox
-	global user_name
-	global Label1_str
-	global Label2_str
 	global Label3_str
-	global AllChecks
-	global hrefElements
-	global driver
-	Label3_str.set("M")
+	Label3_str.set("buy")
+def Ban():
+	global Label3_str
+	Label3_str.set("sell")	
 
 def greet(*args):
     #greeting_message.set(f"Hello, {name or 'World'}!")
@@ -283,9 +343,9 @@ AllChecks=[]
 hrefElements=[]
 test=[]
 options = webdriver.ChromeOptions()
-options.add_argument("--headless")
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument("--no-sandbox")
+#options.add_argument("--headless")
+#options.add_argument('--disable-dev-shm-usage')
+#options.add_argument("--no-sandbox")
 
 driver = webdriver.Chrome(options=options	)
 startForm()	
