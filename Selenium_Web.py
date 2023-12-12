@@ -12,6 +12,9 @@ def GetPrices():
 	global codes
 	global user_name
 	global hrefElements
+	global startListUrl
+	driver.get(startListUrl)
+	time.sleep(0.1)
 	elements = driver.find_elements(By.CLASS_NAME, "cell-05")
 	prices=[]
 	for i in range(len(elements)):
@@ -106,6 +109,8 @@ def start():
 	global Label3_str
 	global qtyStr
 	global listbox
+	global startListUrl
+	global session
 	print("start google")
 	dt_now = datetime.datetime.now()
 	now=dt_now.strftime('%Y年%m月%d日 %H:%M:%S')
@@ -123,27 +128,76 @@ def start():
 	element.send_keys("trung1081")
 	element.send_keys(Keys.ENTER)
 	time.sleep(0.1)
-
-
+	session=driver.current_url.split("BV_SessionID=")[1].split('?')[0]
+	print(f"url * { driver.current_url}  session={session}")
+	startListUrl=f"https://member.rakuten-sec.co.jp/app/info_jp_prc_reg_lst.do;BV_SessionID={session}?eventType=init&gmn=M"
 
 
 	#pcm-gl-nav-01__button
 	#pcm-gl-nav-01__button-inner  pcm-gl-nav-02__button
-	element = driver.find_element(By.CLASS_NAME, "pcm-gl-nav-01__button-inner")
-	href = element.get_attribute('href')
-	element.click()
+	#element = driver.find_element(By.CLASS_NAME, "pcm-gl-nav-01__button-inner")
+	#href = element.get_attribute('href')
+	#element.click()
 	#time.sleep(0.1)
 
 	#//pcm-gl-nav-02__button
-	element = driver.find_element(By.CLASS_NAME, "pcm-gl-nav-02__button")
+	#element = driver.find_element(By.CLASS_NAME, "pcm-gl-nav-02__button")
 
-	elements = driver.find_elements(By.CLASS_NAME, "pcm-gl-nav-02__button")
+	#elements = driver.find_elements(By.CLASS_NAME, "pcm-gl-nav-02__button")
 
-	href = elements[1].get_attribute('href')
+	#href = elements[1].get_attribute('href')
 
-	elements[1].click()
+	#elements[1].click()
 	#time.sleep(0.1)
+	href=startListUrl
+	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_stk_new.do;BV_SessionID={session}?eventType=init&dscrCd=5136&marketCd=1&tradeType=3&ordInit=1"
+	returnUrl=f"https://member.rakuten-sec.co.jp/app/ord_jp_mgn_position.do;BV_SessionID{session}?eventType=init&type=order&sub_type=jp"
+	checkurl=f"https://member.rakuten-sec.co.jp/app/ass_mgn_individual_lst.do;BV_SessionID={session}?eventType=init"
+	
+	def CheckList():
+		driver.get(checkurl)
+		time.sleep(0.1)
+		#general_table
+		general_table = driver.find_element(By.CLASS_NAME, "pcmm-ass-mgn-table")
+		tds=general_table.find_elements(By.CLASS_NAME, "pcmm--is-mr-4")
+		global codeList
+		global nameList
+		global qtyList
+		global originPriceList
+		global profitList
+		codeList=[]
+		qtyList=[]
+		nameList=[]
+		originPriceList=[]
+		profitList=[]
 
+		for k in range(len(tds)):
+			#print(f" {k} Code {tds[k].get_attribute('innerHTML').replace('&nbsp','')}    ")
+			codeList.append(tds[k].get_attribute('innerHTML').replace('&nbsp;',''))
+		#pcmm--is-aln-right
+		cells=general_table.find_elements(By.CLASS_NAME, "pcmm--is-aln-right")
+		for k in range(len(cells)):
+			val=cells[k].get_attribute("innerHTML").strip().replace("	","").replace("<nobr>","").replace("</nobr>","").strip()
+			if k%10==0:
+				qtyList.append(val)
+			if k%10==2:
+				originPriceList.append(val)
+			if k%10==8:
+				profitList.append(val)		
+		cells=general_table.find_elements(By.CLASS_NAME, "pcmm-typo--regular-lv3")
+
+		for k in range(len(cells)):
+			if k%6==0:
+				#print(f" {k} : {cells[k].get_attribute('innerHTML')}    ")
+				nameList.append(cells[k].get_attribute('innerHTML'))
+	CheckList()			
+	for k in range(len(codeList)):	
+		print(f" {nameList[k]} {codeList[k]}  {qtyList[k]}  {profitList[k]}")	
+
+
+
+	#driver.get(checkurl)
+	time.sleep(0.1)
 	test = GetPrices()
 #	listbox = set(test[0])
 	listbox['values'] = test[0]
@@ -157,12 +211,15 @@ def start():
 	i=0
 	#print(test[1])
 	while i<30000:		  
-	  driver.refresh()
+	  #driver.refresh()
 	  #time.sleep(0.1)
 
 
 	  test = GetPrices()
 	  if Label3_str.get()=="buy" or Label3_str.get()=="sell":
+	  	x=listbox.current()
+	  	MuaBan(test[1][x])
+	  if Label3_str.get()=="buxy" or Label3_str.get()=="selxl":
 	  	print(f"Mua {user_name.get()} ")
 	  	
 	  	x=listbox.current()
@@ -199,10 +256,20 @@ def start():
 	  		prices=driver.find_elements(By.ID, "priceMarket")
 	  		prices[0].click()
 
-
+				#<div id="yori_table_update_ask_1">
+					#<div id="yori_table_update_bid_1">
 
 	  		password=driver.find_elements(By.NAME, "password")
 	  		password[0].send_keys("2701")
+
+
+	  		#find price
+	  		priceID="yori_table_update_ask_1"
+	  		if Label3_str.get()=="sell":
+	  			priceID="yori_table_update_bid_1"
+	  		buyPrice=driver.find_elements(By.ID, priceID)
+	  		buychild=buyPrice[0].find_elements(By.TAG_NAME, "a")
+	  		buychild[0].click()
 
 
 	  		#password  accountCd
@@ -215,7 +282,8 @@ def start():
 	  		
 	  		submit=driver.find_elements(By.ID, "ormit_sbm")
 	  		submit[0].click()
-
+	  		time.sleep(0.1)
+	  		print(f"url buy { driver.current_url}")
 	  		#id=ormit_sbm
 	  		#orderValue	
 
@@ -227,7 +295,7 @@ def start():
 	  	time.sleep(1)
 	  	Label3_str.set("OK")
 	  	print(driver.title)
-	  	driver.get(href)
+	  	#driver.get(href)
 	  	#driver.back()
 	  AllPrices=AddNewPrice(AllPrices,test)
 	  i=i+1
@@ -254,6 +322,55 @@ def select_combo(event):
 		Label2_str.set(''.join(AllChecks[listbox.current()][-20:-1]))
 	if len(AllPrices)>0:
 		Label1_str.set(f"{test[2][x]} ({max(AllPrices[x])}-{min(AllPrices[x])})")
+def MuaBan(buycode):
+	global Label3_str
+	global webdriver
+	global test
+	global session
+	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_stk_new.do;BV_SessionID={session}?eventType=init&dscrCd={buycode}&marketCd=1&tradeType=3&ordInit=1"
+	driver.get(buyurl)
+	time.sleep(0.1)
+	banRadios = driver.find_elements(By.ID, Label3_str.get())
+	banRadios[0].click()
+	time.sleep(0.1)
+	kikans=driver.find_elements(By.ID, "mgnMaturityCd_system_6m")
+	kikans[0].click()
+	qtys=driver.find_elements(By.NAME, "orderValue")
+	qtys[0].send_keys(qtyStr.get())
+	prices=driver.find_elements(By.NAME, "marketOrderPrice")
+		#prices[0].send_keys("1000")
+	
+			#id=priceMarket name =marketOrderKbn id= marketOrderKbn
+			#<input type="radio" name="marketOrderKbn" value="1" onclick="calcValueAmuont();" id="priceMarket">
+		#prices=driver.find_elements(By.ID, "priceMarket")
+		#prices[0].click()
+	
+				#<div id="yori_table_update_ask_1">
+					#<div id="yori_table_update_bid_1">
+	
+	password=driver.find_elements(By.NAME, "password")
+	password[0].send_keys("2701")
+			#find price
+	priceID="yori_table_update_ask_1"
+	if Label3_str.get()=="sell":
+		priceID="yori_table_update_bid_1"
+	buyPrice=driver.find_elements(By.ID, priceID)
+	buychild=buyPrice[0].find_elements(By.TAG_NAME, "a")
+	buychild[0].click()
+	
+		#password  accountCd
+	normals=driver.find_elements(By.ID, "general")
+	normals[0].click()
+		#ormit_checkbox
+	normals=driver.find_elements(By.ID, "ormit_checkbox")
+	normals[0].click()
+		
+	submit=driver.find_elements(By.ID, "ormit_sbm")
+	submit[0].click()
+	time.sleep(0.1)
+	print(f"url buy { driver.current_url}")
+  		#id=ormit_sbm
+
 
 def startForm():
 	global root
