@@ -63,6 +63,8 @@ def AddNewPrice(olds,news):
 	global user_name
 	global Label1_str
 	global Label2_str
+	global codeList
+	global profitList
 	for x in range(len(news[2])):
 		#print(test[1][x],user_name.get())	
 
@@ -80,20 +82,33 @@ def AddNewPrice(olds,news):
 			olds[x].append(test[2][x])	
 			maxP = max(olds[x])
 			minP = min(olds[x])
-
+			profit=0
+			for k1 in range(len(codeList)):
+				if codeList[k1]==test[1][x]:
+					profit=profit+ profitList[k1]
+			if profit!=0	:
+				print(f"{names[x]}  {profit}")		
 			if 	codes[x]==user_name.get():
 				print(f"		{names[x]}  Giam 3   {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])}")
-			if "--" in ''.join(AllChecks[x][-2:-1]):
+			if "----" in ''.join(AllChecks[x][-5:-1]):
 				print(f"{names[x]}  Giam 3   {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
 				
-			if "++" in ''.join(AllChecks[x][-2:-1]):
+			if "++++" in ''.join(AllChecks[x][-5:-1]):
 				print(f"{names[x]}  Tang 3  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
-							
-			if "-----" in ''.join(AllChecks[x][-5:-1]):
-				print(f"{names[x]}  Ban gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")				
-			if "+++++" in ''.join(AllChecks[x][-5:-1]):
+			if "---" in ''.join(AllChecks[x][-4:-1]):
+				if profit>0:		
+					TraTinDung(test[1][x])
+			if "-----" in ''.join(AllChecks[x][-6:-1]):
+				print("=======BAN===BAN===BAN==BAN===BAN===BAN=====BAN=====BAN=========")
+				if profit!=0:
+					TraTinDung(test[1][x])
+				print(f"{names[x]}  Ban gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")	
+				print("=============================================================")			
+			if "+++++" in ''.join(AllChecks[x][-6:-1]):
+				MuaBan(test[1][x],'buy','100')
+				print("=======MUA===MUA===MUA==MUA====MUA===MUA===MUA==MUA===MUA===MUA=")
 				print(f"{names[x]}  Mua gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")				
-
+				print("================================================================")
 	return olds		
 
 def start():
@@ -165,36 +180,46 @@ def start():
 		global qtyList
 		global originPriceList
 		global profitList
+		global currentPriceList
 		codeList=[]
 		qtyList=[]
 		nameList=[]
 		originPriceList=[]
 		profitList=[]
-
+		currentPriceList=[]
+		buyorsells=general_table.find_elements(By.CLASS_NAME,"pcmm-typo--regular-lv3 pcmm--is-clr-font-buy-text pcmm--is-aln-center")
+		for k in range(len(buyorsells)):
+			print(f" {k} buyorsells {buyorsells[k].get_attribute('innerHTML').replace('&nbsp','')}    ")
 		for k in range(len(tds)):
 			#print(f" {k} Code {tds[k].get_attribute('innerHTML').replace('&nbsp','')}    ")
 			codeList.append(tds[k].get_attribute('innerHTML').replace('&nbsp;',''))
 		#pcmm--is-aln-right
 		cells=general_table.find_elements(By.CLASS_NAME, "pcmm--is-aln-right")
 		for k in range(len(cells)):
-			val=cells[k].get_attribute("innerHTML").strip().replace("	","").replace("<nobr>","").replace("</nobr>","").strip()
+			val=cells[k].get_attribute("innerHTML").strip().replace("	","").replace("<nobr>","").replace("</nobr>","").replace(",","").strip()
+			print(f"{k} {val}")
 			if k%10==0:
-				qtyList.append(val)
+				qtyList.append(float(val))
 			if k%10==2:
 				originPriceList.append(val)
+			if k%10==3:		
+				currentPriceList.append(val)
 			if k%10==8:
-				profitList.append(val)		
+				profitList.append(float(val))		
 		cells=general_table.find_elements(By.CLASS_NAME, "pcmm-typo--regular-lv3")
 
 		for k in range(len(cells)):
 			if k%6==0:
 				#print(f" {k} : {cells[k].get_attribute('innerHTML')}    ")
 				nameList.append(cells[k].get_attribute('innerHTML'))
+		print("=================================")		
+		for k in range(len(codeList)):	
+			print(f" {nameList[k]} {codeList[k]}  {qtyList[k]} {originPriceList[k]}=>>{currentPriceList[k]} {profitList[k]}")	
+		print("=================================")						
 	CheckList()			
-	for k in range(len(codeList)):	
-		print(f" {nameList[k]} {codeList[k]}  {qtyList[k]}  {profitList[k]}")	
 
 
+	#TraTinDung("5136")	
 
 	#driver.get(checkurl)
 	time.sleep(0.1)
@@ -216,9 +241,14 @@ def start():
 
 
 	  test = GetPrices()
+	  if Label3_str.get()=="Check": 
+	  	CheckList()
 	  if Label3_str.get()=="buy" or Label3_str.get()=="sell":
 	  	x=listbox.current()
-	  	MuaBan(test[1][x])
+	  	MuaBan(test[1][x],Label3_str.get(),qtyStr.get())
+	  if Label3_str.get()=="TraTinDung":
+	  	x=listbox.current()
+	  	TraTinDung(test[1][x])	  	
 	  if Label3_str.get()=="buxy" or Label3_str.get()=="selxl":
 	  	print(f"Mua {user_name.get()} ")
 	  	
@@ -322,21 +352,21 @@ def select_combo(event):
 		Label2_str.set(''.join(AllChecks[listbox.current()][-20:-1]))
 	if len(AllPrices)>0:
 		Label1_str.set(f"{test[2][x]} ({max(AllPrices[x])}-{min(AllPrices[x])})")
-def MuaBan(buycode):
+def MuaBan(buycode,sellbuy,qty):
 	global Label3_str
 	global webdriver
 	global test
 	global session
-	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_stk_new.do;BV_SessionID={session}?eventType=init&dscrCd={buycode}&marketCd=1&tradeType=3&ordInit=1"
+	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_stk_new.do;BV_SessionID={session}?eventType=init&dscrCd={buycode}&marketCd=1&ordInit=1"
 	driver.get(buyurl)
 	time.sleep(0.1)
-	banRadios = driver.find_elements(By.ID, Label3_str.get())
+	banRadios = driver.find_elements(By.ID,sellbuy) 
 	banRadios[0].click()
 	time.sleep(0.1)
 	kikans=driver.find_elements(By.ID, "mgnMaturityCd_system_6m")
 	kikans[0].click()
 	qtys=driver.find_elements(By.NAME, "orderValue")
-	qtys[0].send_keys(qtyStr.get())
+	qtys[0].send_keys(qty)
 	prices=driver.find_elements(By.NAME, "marketOrderPrice")
 		#prices[0].send_keys("1000")
 	
@@ -371,6 +401,41 @@ def MuaBan(buycode):
 	print(f"url buy { driver.current_url}")
   		#id=ormit_sbm
 
+def TraTinDung(buycode):
+	global Label3_str
+	global webdriver
+	global test
+	global session
+	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_mgn_repay.do;BV_SessionID={session}?eventType=init&dscrCd={buycode}&consignCd=0&tradeType=3&accountCd=0&marginType=0&maturityType=1#firstView"
+	driver.get(buyurl)
+	time.sleep(0.1)
+	checkAll = driver.find_elements(By.NAME, "checkAll")
+	checkAll[0].click()
+	time.sleep(0.1)
+	
+	prices=driver.find_elements(By.NAME, "marketOrderPrice")
+		
+	
+	password=driver.find_elements(By.NAME, "password")
+	password[0].send_keys("2701")
+			#find price
+	priceID="yori_table_update_ask_1"
+	if Label3_str.get()=="sell":
+		priceID="yori_table_update_bid_1"
+	buyPrice=driver.find_elements(By.ID, priceID)
+	buychild=buyPrice[0].find_elements(By.TAG_NAME, "a")
+	buychild[0].click()
+	
+	
+		#ormit_checkbox
+	normals=driver.find_elements(By.ID, "ormit_checkbox")
+	normals[0].click()
+		
+	submit=driver.find_elements(By.ID, "ormit_sbm")
+	#submit[0].click()
+	time.sleep(0.1)
+	print(f"url tra { driver.current_url}")
+  		#id=ormit_sbm
 
 def startForm():
 	global root
