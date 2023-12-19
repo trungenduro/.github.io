@@ -14,6 +14,7 @@ def GetPrices():
 	global hrefElements
 	global startListUrl
 	driver.get(startListUrl)
+	driver.execute_script("document.title = 'test python'")
 	time.sleep(0.1)
 	elements = driver.find_elements(By.CLASS_NAME, "cell-05")
 	prices=[]
@@ -66,10 +67,18 @@ def AddNewPrice(olds,news):
 	global codeList
 	global profitList
 	for x in range(len(news[2])):
-		#print(test[1][x],user_name.get())	
-
-		if olds[x][-1] != test[2][x]:
-			#print(f"{names[x]}: {olds[x][-1]} => {test[2][x]}")
+		#print(test[1][x],user_name.get())
+		updow=0
+		if olds[x][-1] >0:
+			tt= 400000/(olds[x][-1])/100
+			print(tt)
+		qty1 = int(tt)*100
+		print(f" so luong mua dc {qty1}")
+		if 	len(olds[x]) >0:
+			if olds[x][-1]>0:
+				updow = abs((test[2][x]-olds[x][-1]) / olds[x][-1] *1000)
+		if updow >= 1:
+			#print(f"{names[x]}: {olds[x][-1]} => {test[2][x]}  {updow}")
 			
 			if olds[x][-1] < test[2][x]:
 				AllChecks[x].append('+')
@@ -82,32 +91,41 @@ def AddNewPrice(olds,news):
 			olds[x].append(test[2][x])	
 			maxP = max(olds[x])
 			minP = min(olds[x])
+
 			profit=0
+
+
 			for k1 in range(len(codeList)):
 				if codeList[k1]==test[1][x]:
 					profit=profit+ profitList[k1]
 			if profit!=0	:
 				print(f"{names[x]}  {profit}")		
 			if 	codes[x]==user_name.get():
-				print(f"		{names[x]}  Giam 3   {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])}")
+				print(f"		{names[x]}  {codes[x]} Giam 3   {olds[x][-10:-1]}  {''.join(AllChecks[x][-10:-1])}")
 			if "----" in ''.join(AllChecks[x][-5:-1]):
-				print(f"{names[x]}  Giam 3   {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
+				print(f"{names[x]} {codes[x]} Giam 3   {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
 				
 			if "++++" in ''.join(AllChecks[x][-5:-1]):
-				print(f"{names[x]}  Tang 3  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
+				print(f"{names[x]} {codes[x]} Tang 3  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])}")
 			if "---" in ''.join(AllChecks[x][-4:-1]):
-				if profit>0:		
+				if profit>0:
+					print("==========TraTinDung")		
 					TraTinDung(test[1][x])
 			if "-----" in ''.join(AllChecks[x][-6:-1]):
 				print("=======BAN===BAN===BAN==BAN===BAN===BAN=====BAN=====BAN=========")
 				if profit!=0:
-					TraTinDung(test[1][x])
-				print(f"{names[x]}  Ban gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")	
+					print("==========TraTinDung")
+					#TraTinDung(test[1][x])
+				else:
+					MuaBan(test[1][x],'sell','100')	
+					print("==========mua tin dung ban")
+				print(f"{names[x]} {codes[x]}  Ban gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")	
 				print("=============================================================")			
 			if "+++++" in ''.join(AllChecks[x][-6:-1]):
-				MuaBan(test[1][x],'buy','100')
+				if profit!=0:
+					MuaBan(test[1][x],'buy','100')
 				print("=======MUA===MUA===MUA==MUA====MUA===MUA===MUA==MUA===MUA===MUA=")
-				print(f"{names[x]}  Mua gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")				
+				print(f"{names[x]} {codes[x]} Mua gap  {olds[x][-10:-1]} {max(olds[x])}-{min(olds[x])} {''.join(AllChecks[x][-10:-1])} ")				
 				print("================================================================")
 	return olds		
 
@@ -130,10 +148,10 @@ def start():
 	dt_now = datetime.datetime.now()
 	now=dt_now.strftime('%Y年%m月%d日 %H:%M:%S')
 	print(f"===start google==={now}======")
-	#driver.set_window_position(-10000,0)
+	driver.set_window_position(-10000,0)
 	driver.get('https://www.rakuten-sec.co.jp/')
 	#driver.title
-
+	driver.execute_script("document.title = 'test python'")
 	time.sleep(0.1)
 
 	element=driver.find_element(By.ID,"form-login-id");
@@ -170,11 +188,6 @@ def start():
 	checkurl=f"https://member.rakuten-sec.co.jp/app/ass_mgn_individual_lst.do;BV_SessionID={session}?eventType=init"
 	
 	def CheckList():
-		driver.get(checkurl)
-		time.sleep(0.1)
-		#general_table
-		general_table = driver.find_element(By.CLASS_NAME, "pcmm-ass-mgn-table")
-		tds=general_table.find_elements(By.CLASS_NAME, "pcmm--is-mr-4")
 		global codeList
 		global nameList
 		global qtyList
@@ -186,7 +199,17 @@ def start():
 		nameList=[]
 		originPriceList=[]
 		profitList=[]
-		currentPriceList=[]
+		currentPriceList=[]		
+		driver.get(checkurl)
+		driver.execute_script("document.title = 'test python'")
+		time.sleep(0.1)
+		#general_table
+		general_tables = driver.find_elements(By.CLASS_NAME, "pcmm-ass-mgn-table")
+		if len(general_tables)==0:
+			return
+		general_table=general_tables[0]
+		tds=general_table.find_elements(By.CLASS_NAME, "pcmm--is-mr-4")
+
 		buyorsells=general_table.find_elements(By.CLASS_NAME,"pcmm-typo--regular-lv3 pcmm--is-clr-font-buy-text pcmm--is-aln-center")
 		for k in range(len(buyorsells)):
 			print(f" {k} buyorsells {buyorsells[k].get_attribute('innerHTML').replace('&nbsp','')}    ")
@@ -197,7 +220,7 @@ def start():
 		cells=general_table.find_elements(By.CLASS_NAME, "pcmm--is-aln-right")
 		for k in range(len(cells)):
 			val=cells[k].get_attribute("innerHTML").strip().replace("	","").replace("<nobr>","").replace("</nobr>","").replace(",","").strip()
-			print(f"{k} {val}")
+			#print(f"{k} {val}")
 			if k%10==0:
 				qtyList.append(float(val))
 			if k%10==2:
@@ -214,8 +237,9 @@ def start():
 				nameList.append(cells[k].get_attribute('innerHTML'))
 		print("=================================")		
 		for k in range(len(codeList)):	
-			print(f" {nameList[k]} {codeList[k]}  {qtyList[k]} {originPriceList[k]}=>>{currentPriceList[k]} {profitList[k]}")	
-		print("=================================")						
+			print(f"  {codeList[k]}  {qtyList[k]} {originPriceList[k]}=>>{currentPriceList[k]} {profitList[k]}")	
+		print("=================================")
+		Label3_str.set("OK")						
 	CheckList()			
 
 
@@ -241,8 +265,11 @@ def start():
 
 
 	  test = GetPrices()
-	  if Label3_str.get()=="Check": 
+	  if Label3_str.get()=="CheckBuyList": 
 	  	CheckList()
+	  if Label3_str.get()=="tratindung" :
+	  	x=listbox.current()	
+	  	TraTinDung(test[1][x])
 	  if Label3_str.get()=="buy" or Label3_str.get()=="sell":
 	  	x=listbox.current()
 	  	MuaBan(test[1][x],Label3_str.get(),qtyStr.get())
@@ -357,11 +384,23 @@ def MuaBan(buycode,sellbuy,qty):
 	global webdriver
 	global test
 	global session
-	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_stk_new.do;BV_SessionID={session}?eventType=init&dscrCd={buycode}&marketCd=1&ordInit=1"
+	global OKlist
+	if buycode not in OKlist:
+		print(f" {buycode} ko trong danh sach mua ban")
+		return
+	#qty = str(int(400000/olds[x]/100)*100)
+
+	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_mgn_new.do;BV_SessionID={session}?eventType=init&dscrCd={buycode}&marketCd=1&ordInit=1#firstView"
+
 	driver.get(buyurl)
+	driver.execute_script("document.title = 'test python'")
 	time.sleep(0.1)
-	banRadios = driver.find_elements(By.ID,sellbuy) 
-	banRadios[0].click()
+	banRadios = driver.find_elements(By.ID,sellbuy)
+	try: 
+		banRadios[0].click()
+	except:
+		print("ko the mua ban")
+		return	
 	time.sleep(0.1)
 	kikans=driver.find_elements(By.ID, "mgnMaturityCd_system_6m")
 	kikans[0].click()
@@ -406,10 +445,20 @@ def TraTinDung(buycode):
 	global webdriver
 	global test
 	global session
+	global OKlist
+	if buycode not in OKlist:
+		print(f" {buycode} ko trong danh sach mua ban")
+		#return
 	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_mgn_repay.do;BV_SessionID={session}?eventType=init&dscrCd={buycode}&consignCd=0&tradeType=3&accountCd=0&marginType=0&maturityType=1#firstView"
+	
+	buyurl=   f"https://member.rakuten-sec.co.jp/app/ord_jp_mgn_repay.do;BV_SessionID={session}?eventType=init&type=order&sub_type=jp&local=null&dscrCd={buycode}&consignCd=0&tradeType=3&marginType=0&maturityType=1&accountCd=0&gmn=J&smn=05&lmn=02&fmn=02#firstView"
 	driver.get(buyurl)
+	driver.execute_script("document.title = 'test python'")
 	time.sleep(0.1)
 	checkAll = driver.find_elements(By.NAME, "checkAll")
+	if len(checkAll)==0:
+		print("KO co trong tk")
+		return
 	checkAll[0].click()
 	time.sleep(0.1)
 	
@@ -498,8 +547,15 @@ def startForm():
 	ban_button = ttk.Button(buttons, text="Ban", command=Ban)
 	ban_button.grid(row=0, column=1, sticky="EW")
 
+	tra_button = ttk.Button(buttons, text="Tra", command=Tra)
+	tra_button.grid(row=0, column=2, sticky="EW")
+
+	check_button = ttk.Button(buttons, text="Check", command=CheckBuyList)
+	check_button.grid(row=1, column=0, sticky="EW")
+
+
 	quit_button = ttk.Button(buttons, text="Quit", command=root.destroy)
-	quit_button.grid(row=0, column=2, sticky="EW")
+	quit_button.grid(row=1, column=2, sticky="EW")
 
 	root.bind("<Return>", greet)
 	root.bind("KP_Enter", greet)
@@ -508,13 +564,19 @@ def startForm():
 
 	root.mainloop()
 
+def CheckBuyList():
+	global Label3_str
+	Label3_str.set("CheckBuyList")
+
 def Mua():
 	global Label3_str
 	Label3_str.set("buy")
 def Ban():
 	global Label3_str
 	Label3_str.set("sell")	
-
+def Tra():
+	global Label3_str
+	Label3_str.set("tratindung")	
 def greet(*args):
     #greeting_message.set(f"Hello, {name or 'World'}!")
     thread1 = threading.Thread(target=start)
@@ -528,6 +590,7 @@ options = webdriver.ChromeOptions()
 #options.add_argument("--headless")
 #options.add_argument('--disable-dev-shm-usage')
 #options.add_argument("--no-sandbox")
+OKlist=["5136","4382"]
 
 driver = webdriver.Chrome(options=options	)
 startForm()	
