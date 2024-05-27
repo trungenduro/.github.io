@@ -45,7 +45,7 @@ void CheckPosition()
  
  void ChildPositionChange(int newpos)
  {
-   if( newpos==0){
+   if( newpos==0 && child_positions>0){
       Print(" check check child 0 0 0000 ");
        Print(" ==== Close ALL ===  ");
        Print(" ==== Close ALL ===  ");
@@ -56,14 +56,26 @@ void CheckPosition()
  }
  
  
+
+ string GetInfo(string info="MT4")
+ {
+    string mt5a=  info + "_" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
+     string mt5b=  IntegerToString(  (int)AccountInfoDouble(ACCOUNT_BALANCE));
+   string mt5c= IntegerToString( (int) AccountInfoDouble(ACCOUNT_PROFIT));
+    string mt5d= IntegerToString( (int) AccountInfoDouble(ACCOUNT_EQUITY));
+ 
+   return mt5a + " " + mt5b + " " + mt5c + " " + mt5d;
+ }
 int OnInit()
   {
  
+   Print("===== New MT ======================");
    Print("TERMINAL_COMMONDATA_PATH = ",TerminalInfoString(TERMINAL_COMMONDATA_PATH));
    positions=OrdersTotal();
    Print("TestEA4");
    child_positions =  ReadChild();
-   
+   Print("login = ",AccountInfoInteger(ACCOUNT_LOGIN)," BALANCE=",AccountInfoDouble(ACCOUNT_BALANCE));
+    
    Print(" === init child_positions=",child_positions);
    Print(" === init positions=",positions);
    return(INIT_SUCCEEDED);
@@ -143,7 +155,8 @@ void WriteParent()
     string parentPath= TerminalInfoString(TERMINAL_DATA_PATH) + "\\MQL4\Files";
    ShellExecuteW(NULL,"open",TerminalInfoString(TERMINAL_COMMONDATA_PATH) + "\\CopyMT.exe",parentPath,NULL,1);
   // ShellExecuteW(NULL,"open",TerminalInfoString(TERMINAL_COMMONDATA_PATH) + "\\CopyMT4_5.bat",NULL,NULL,1);
-
+  ShellExecuteW(NULL,"open",TerminalInfoString(TERMINAL_COMMONDATA_PATH) + "\\CopyMT.exe",GetInfo("MT4_change"),NULL,1);
+   Print("Write file ok ",GetInfo());
    Print("Write file ok");
 
 }
@@ -213,6 +226,7 @@ int CloseAll()
       Sleep(3000);
     }  
   }
-  
+    ShellExecuteW(NULL,"open",TerminalInfoString(TERMINAL_COMMONDATA_PATH) + "\\CopyMT.exe",GetInfo("MT4_Close"),NULL,1);
+   Print("Close ALL  ",GetInfo());
   return(0);
 }
