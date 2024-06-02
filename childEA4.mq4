@@ -21,6 +21,7 @@ int child_positions;
 void CheckPosition()
  {
   int curr_positions=OrdersTotal();
+  
   //Print("Check pos positions=",positions, "  curr_positions ",curr_positions);
   if(curr_positions!=positions)
     {  
@@ -59,7 +60,10 @@ void CheckPosition()
 
  string GetInfo(string info="MT4")
  {
-    string mt5a=  info + "_" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
+  string varDate=TimeToString(__DATETIME__);
+    StringReplace( varDate," ","_");
+    string mt5a= info+ "_" + varDate + "_"+ IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
+  //  string mt5a=  info + "_" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN));
      string mt5b=  IntegerToString(  (int)AccountInfoDouble(ACCOUNT_BALANCE));
    string mt5c= IntegerToString( (int) AccountInfoDouble(ACCOUNT_PROFIT));
     string mt5d= IntegerToString( (int) AccountInfoDouble(ACCOUNT_EQUITY));
@@ -75,9 +79,19 @@ int OnInit()
    Print("TestEA4");
    child_positions =  ReadChild();
    Print("login = ",AccountInfoInteger(ACCOUNT_LOGIN)," BALANCE=",AccountInfoDouble(ACCOUNT_BALANCE));
-    
+    Print("GetInfonew = ",GetInfo());
    Print(" === init child_positions=",child_positions);
    Print(" === init positions=",positions);
+   
+   GetPosArray(CurrentPos);
+    
+   for(int i = 0; i < ArraySize(CurrentPos); i++)
+   {
+        
+      Print("CurrentPos-i=",i," object tickket=",CurrentPos[i].ticket, "  ",CurrentPos[i].posSymBol, " ",CurrentPos[i].Type, " qty=",CurrentPos[i].QTY);
+     
+   }
+   
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
@@ -112,30 +126,135 @@ Print( " On trade ");
 
 class PosObject{
 
-public :
-PosObject(int i){
-
-   if (i < OrdersTotal())
-   {
-    
-  //  bool check=  OrderSelect( i, SELECT_BY_POS, MODE_TRADES ); 
-      posSymBol="BTC";
-      posType = "Sell";
+   public :
+   PosObject(){
    }
-}
-
-string ToString()
-{
-   return posType + " " + posSymBol;
-}
-ulong ticket;
-string Type;
-string posSymBol;
-string posType;
+     PosObject(string st)
+    {
+        string result[];               // An array to get strings
+   
+         ushort  u_sep=StringGetCharacter(",",0);
+   
+         int k=StringSplit(st,u_sep,result); 
+         if (k>3)
+         {
+            ticket = StringToInteger( result[0]);
+            QTY = StringToDouble(result[3]);
+            posSymBol = result[1];
+            posType = result[2];
+         }
+    
+    }
+    
+   PosObject(int i){   
+    
+         OrderSelect(i, SELECT_BY_POS);      
+      // OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 5, Red );
+         ulong ticketNum = OrderTicket();
+     
+         ticket = ticketNum;
+         posSymBol = OrderSymbol();
+         QTY =   OrderLots();
+         posType = "Sell";
+         int type   = OrderType();
+          if(type == OP_BUY)
+              {
+                  posType = "Buy";
+              }
+             if(type == OP_SELL   )
+              {
+                  posType = "Sell";
+              }    
+      
+   }
+   
+   string ToString()
+   {
+      return posType + " " + posSymBol ;
+   }
+   ulong ticket;
+   string Type;
+   string posSymBol;
+   string posType;
+   double QTY;
+      string comment;
+   bool isNew;
 };
+PosObject CurrentPos[];
 
-
+  void GetPosArray(PosObject &t[])
+  { 
+      ArrayResize(t,0); 
+      for(int i = 0; i < OrdersTotal(); i++)
+      {
+       
+         ArrayResize(t,i +1 );   
+          PosObject o(i);             
+         t[i] = o;
+      }
+  }
 //+------------------------------------------------------------------+
+
+void CheckNewPosition(PosObject &parentPos[],PosObject &childPos[] )
+{
+   //find new order 
+    for(int i = 0; i < ArraySize(parentPos); i++)
+   {
+      parentPos[i].isNew = true;
+   }
+   for(int i = 0; i < ArraySize(childPos); i++)
+   {
+       childPos[i].isNew = true;  
+        for(int j= 0; j < ArraySize(parentPos); j++)
+         {
+            if(parentPos[j].comment== IntegerToString( childPos[i].ticket))
+            {
+               childPos[i].isNew = false;
+               parentPos[j].isNew = false;
+            }         
+         }       
+    }
+      for(int i = 0; i < ArraySize(parentPos); i++)
+      {
+           if( parentPos[i].isNew )
+           {
+               ClosePos(parentPos[i]);
+              // Print("Close pos ",parentPos[i].comment ," ",parentPos[i].ticket, " QTY=",parentPos[i].QTY );
+           }
+      }
+        for(int i = 0; i < ArraySize(childPos); i++)
+      {
+           if( childPos[i].isNew )
+           {
+               AddNewPos(childPos[i]);
+           }
+      }
+} 
+
+void AddNewPos(PosObject &ob)
+{
+       Print("===== New Child Order =", ob.ticket, " Symbol", ob.posSymBol, " ",ob.posType, " Qty", ob.QTY);
+ 
+   if(ob.posType=="Buy"){
+    //  Trade.Buy(ob.posSymBol, ob.QTY,  0,  0, ob.ticket);
+      Print("Trade.Buy(",ob.posSymBol,",", ob.QTY,",", ob.ticket);
+   }
+     if(ob.posType=="Sell"){
+  // Trade.Sell(ob.posSymBol, ob.QTY,  0,  0, ob.ticket);
+    Print("Trade.Sell(",ob.posSymBol,",", ob.QTY,",", ob.ticket);
+   } 
+}
+
+void ClosePos(PosObject &ob)
+{
+   if(_Symbol!= ob.posSymBol){  
+       Print("==khac",_Symbol , "!=", ob.posSymBol );
+    return;
+    }
+       Print("===== close Child Order =", ob.ticket, " Symbol", ob.posSymBol, " ",ob.posType, " Qty", ob.QTY); 
+    //  Trade.ClosePosition(ob.ticket, ob.QTY);     
+}
+
 
 void WriteParent()
 {
@@ -147,8 +266,10 @@ void WriteParent()
    }
    for(int i = 0; i < OrdersTotal(); i++)
    {
+    OrderSelect(i, SELECT_BY_POS);
       PosObject o(i);
-      FileWrite(h,TimeToStr( TimeCurrent()) + ","+ o.posSymBol + "," + o.posType); 
+      //FileWrite(h,TimeToStr( TimeCurrent()) + ","+ o.posSymBol + "," + o.posType); 
+      FileWrite(h,o.ticket + ","+ o.posSymBol + "," + o.posType + "," + DoubleToString(o.QTY) );   
    }
    
    FileClose(h);
