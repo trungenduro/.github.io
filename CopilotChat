@@ -1,0 +1,82 @@
+ create html 弁当注文　フォルム　項目：注文者　オーダー、弁当9種類　数量　注文日は前日14時半まで
+
+ １０種類　幕ノ内　華　　1,300円											
+	H-1		H-2			H-3			H-4		
+はんなり膳　　1,400円											
+	HN-1		HN-2			HN-3					
+DX幕ノ内　　  1,600円											
+	D-1		D-2			D-3					
+
+
+ 注文日を選択したときに、チェック　エーラー表示
+
+ 注文期限（前日14時30分）を過ぎたら、注文ボータン押せない
+
+ 数量変更すると、合計金額更新
+
+ 弁当の種類はグループで表示
+ 弁当の種類グループ内は、縦ではなく、横で、写真表示できますか？
+
+ オーダー項目を追加して
+
+ オーダーは　inputで良い
+
+ 弁当写真は google drive から取れる？https://drive.google.com/file/d/1he2zdAyHhNbmEOM_q00lc8Ki1zJkNS9e/view?usp=drive_link
+
+ h2:https://drive.google.com/file/d/1L05XKmAZ0X7NIBOKuzX2RQaX_yRA0Roj/view?usp=drive_link h3:https://drive.google.com/file/d/1dGn-ka7wOrdaiMjYjPIR5ijPTDUqZncY/view?usp=drive_link h4:https://drive.google.com/file/d/1LuHd0PpWAn3o9SLxUBRxxFAk-xMcTp_A/view?usp=drive_link  hn1:https://drive.google.com/file/d/1ulOXRh1plOz5_NTFseVmh0POSpvCfoi-/view?usp=drive_link  hn2:https://drive.google.com/file/d/1JZSc4M9ExDBKFWMDN7rNT0AXCZZGX9kU/view?usp=drive_link  hn3:https://drive.google.com/file/d/1D9-IQYtQhiftuNu7PSS6SPav8hlch70n/view?usp=drive_link d1:https://drive.google.com/file/d/11gtI7uOlH-3jvhGkBOr30kXn5uQl5p-W/view?usp=drive_link d2:https://drive.google.com/file/d/1iWgXh7UhjfZLRc0fCObGABG6LiY6M5qu/view?usp=drive_link  https://drive.google.com/file/d/1Y3rQkJpVcGBDTCwzl0CDYYiBCiKci5Dq/view?usp=drive_link
+
+ change bento-image  height bigger
+
+ オーダーは　注文日 *の右に　　注文者メールは　注文者名の右に
+
+ オーダーは必要
+
+ 注文者メールも必要です
+
+   .bento-quantity は　.bento-name　の右
+
+ 数量ある弁当は　ハイライトされる
+
+
+ create +- button in left and right side of input number 
+
+ label and input same row is ok
+
+ bento-item:hover have transform zoom?
+
+ 合計数量も、種類ごとの数も表示して
+
+ 種類は H1,H2 ...
+
+ 各弁当の個別コードを３列して、幕ノ内 華　はんなり膳　DX幕ノ内
+
+   window.onload = function() 
+        {
+       
+        google.script.run
+          .withSuccessHandler(function(email) {            
+            console.log(email);           
+              document.getElementById("ordererEmail").textContent = email;
+          })        
+          .getEmail();
+      }
+
+
+ how to set text for ordererEmail
+
+ create 注文する function 
+
+ create submitOrder(orderData) function add row to sheet , sheet columns is 注文日  注文者名 注文者メール オーダー * H-1 H-2 H-3 ...  合計
+
+  submitOrder(orderData)　時間も追加して
+
+ create html for user can see oders from sheet, user can change or delete
+
+ in getOrders() function change timestamp to string type because date type can not tranfer to web
+
+ need to change orders.html?
+
+
+ modify to not display edit delete for orders which 前日の14時30分まで
+
+  order.orderNotes is store at string, convert it to string
